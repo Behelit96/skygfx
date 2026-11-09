@@ -1,5 +1,6 @@
 #include "skygfx.h"
 #include "neo.h"
+#include "headlights.h"
 #include "ini_parser.hpp"
 #include "debugmenu_public.h"
 #include "ModuleList.hpp"
@@ -823,6 +824,10 @@ RenderScene_before(void*)
 	windPos.x += modifierX * CTimer__ms_fTimeStep;
 	windPos.y += modifierY * CTimer__ms_fTimeStep;
 
+	// Queue the headlight ground pools for this frame. Does
+	// nothing when the headlights effect is off.
+	Headlights_StoreGroundPools();
+
 	return true;
 }
 
@@ -834,6 +839,9 @@ RenderScene_after(void*)
 	else if(config->vehiclePipe == CAR_LCS || config->vehiclePipe == CAR_VCS)
 		RenderReflectionMap_leeds();
 	DrawDebugEnvMap();
+	// Draw the headlight cones. Does nothing when the
+	// headlights effect is off.
+	Headlights_RenderCones();
 	return true;
 }
 void
@@ -1258,6 +1266,7 @@ readInis(void)
 		for(int i = 1; i <= numConfigs; i++)
 			readIni(i);
 	refreshIni();
+	Headlights_ReadIni();
 }
 
 void
@@ -1279,6 +1288,7 @@ reloadAllInis(void)
 		for(int i = 1; i <= numConfigs; i++)
 			readIni(i);
 	refreshIni();
+	Headlights_ReadIni();
 }
 
 // load asi ini again after having read stream ini as we need to know radiosity settings
